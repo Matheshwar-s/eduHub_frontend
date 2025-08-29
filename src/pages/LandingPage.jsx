@@ -1,11 +1,51 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { FaBookOpen, FaLaptopCode, FaUsers, FaRocket } from "react-icons/fa";
+import { FaBookOpen, FaLaptopCode, FaUsers, FaBars, FaTimes } from "react-icons/fa";
 
 export default function LandingPage() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black text-white font-sans">
+      {/* 🌐 Navbar */}
+      <nav className="fixed top-0 left-0 w-full z-50 bg-gray-900/80 backdrop-blur-md border-b border-gray-700">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          {/* Logo */}
+          <div className="text-2xl font-bold text-indigo-400">EduHub</div>
+
+          {/* Desktop Links */}
+          <div className="hidden md:flex space-x-8 items-center">
+            <a href="#features" className="hover:text-indigo-400 transition">Features</a>
+            <a href="#contact" className="hover:text-indigo-400 transition">Contact</a>
+            <button className="px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition">
+              Sign In
+            </button>
+          </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-2xl">
+              {isOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden bg-gray-900 px-6 pb-4 space-y-4">
+            <a href="#hero" className="block hover:text-indigo-400 transition">Home</a>
+            <a href="#features" className="block hover:text-indigo-400 transition">Features</a>
+            <a href="#testimonials" className="block hover:text-indigo-400 transition">Testimonials</a>
+            <a href="#contact" className="block hover:text-indigo-400 transition">Contact</a>
+            <button className="w-full px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition">
+              Sign In
+            </button>
+          </div>
+        )}
+      </nav>
+
       {/* 🌟 Hero Section */}
-      <section className="min-h-screen flex flex-col justify-center items-center text-center px-6">
+      <section id="hero" className="min-h-screen flex flex-col justify-center items-center text-center px-6 pt-32">
         <motion.h1
           initial={{ opacity: 0, y: -30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -29,7 +69,7 @@ export default function LandingPage() {
       </section>
 
       {/* 📚 Features */}
-      <section className="py-20 px-6 bg-gray-800 text-center">
+      <section id="features" className="py-20 px-6 bg-gray-800 text-center">
         <h2 className="text-4xl font-bold mb-12">Why Choose EduHub?</h2>
         <div className="grid md:grid-cols-3 gap-12 max-w-6xl mx-auto">
           <FeatureCard icon={<FaBookOpen />} title="Expert Courses" desc="Curated by industry leaders with real-world insights." />
@@ -39,7 +79,7 @@ export default function LandingPage() {
       </section>
 
       {/* 💬 Testimonials */}
-      <section className="py-20 px-6 text-center">
+      <section id="testimonials" className="py-20 px-6 text-center">
         <h2 className="text-4xl font-bold mb-12">What Our Learners Say</h2>
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           <Testimonial
@@ -54,7 +94,7 @@ export default function LandingPage() {
       </section>
 
       {/* 🚀 Call to Action */}
-      <section className="py-20 px-6 bg-indigo-600 text-center">
+      <section id="contact" className="py-20 px-6 bg-indigo-600 text-center">
         <h2 className="text-4xl font-bold">Ready to Start Learning?</h2>
         <p className="mt-4 text-lg text-gray-200">
           Join thousands of learners and level up your skills today.
