@@ -13,7 +13,7 @@ export default function Signup() {
 
   const requestCode = async () => {
     try {
-      const res = await api.post("/api//auth/request-code");
+      const res = await api.post("/api/auth/request-code");
       alert(res.data.message);
       setCodeRequested(true);
     } catch (err) {
