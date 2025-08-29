@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaBookOpen, FaLaptopCode, FaUsers, FaBars, FaTimes } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -17,9 +18,11 @@ export default function LandingPage() {
           <div className="hidden md:flex space-x-8 items-center">
             <a href="#features" className="hover:text-indigo-400 transition">Features</a>
             <a href="#contact" className="hover:text-indigo-400 transition">Contact</a>
+            <Link to="/signup">
             <button className="px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition">
               Sign In
             </button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -33,13 +36,14 @@ export default function LandingPage() {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden bg-gray-900 px-6 pb-4 space-y-4">
-            <a href="#hero" className="block hover:text-indigo-400 transition">Home</a>
             <a href="#features" className="block hover:text-indigo-400 transition">Features</a>
             <a href="#testimonials" className="block hover:text-indigo-400 transition">Testimonials</a>
             <a href="#contact" className="block hover:text-indigo-400 transition">Contact</a>
+            <Link to="/signup">
             <button className="w-full px-4 py-2 bg-indigo-500 rounded-lg hover:bg-indigo-600 transition">
               Sign In
             </button>
+            </Link>
           </div>
         )}
       </nav>
@@ -59,12 +63,11 @@ export default function LandingPage() {
           tools to boost your skills.
         </p>
         <div className="mt-8 flex gap-4">
+        <Link to="/signup">
           <button className="px-6 py-3 bg-indigo-500 rounded-xl text-lg font-semibold hover:bg-indigo-600 transition">
             Get Started
           </button>
-          <button className="px-6 py-3 border border-gray-400 rounded-xl text-lg font-semibold hover:bg-gray-700 transition">
-            Learn More
-          </button>
+          </Link>
         </div>
       </section>
 
@@ -99,9 +102,11 @@ export default function LandingPage() {
         <p className="mt-4 text-lg text-gray-200">
           Join thousands of learners and level up your skills today.
         </p>
+        <Link to="/signup">
         <button className="mt-6 px-8 py-3 bg-white text-indigo-600 rounded-xl text-lg font-bold hover:bg-gray-200 transition">
           Sign Up Now
         </button>
+        </Link>
       </section>
 
       {/* Footer */}
