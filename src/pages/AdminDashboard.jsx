@@ -11,7 +11,6 @@ export default function AdminDashboard() {
     time: "",
   });
 
-  // Fetch users + classes on load
   useEffect(() => {
     fetchUsers();
     fetchClasses();
@@ -49,9 +48,6 @@ export default function AdminDashboard() {
     try {
       const res = await api.post("/api/admin/classes", newClass);
       setClasses([...classes, res.data]);
-      console.log("Submitting newClass:", newClass);
-
-      // ✅ Reset all fields to avoid undefined values
       setNewClass({ link: "", title: "", date: "", time: "" });
     } catch (err) {
       console.error(err);
@@ -68,125 +64,138 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 p-8">
+      <h1 className="text-4xl font-extrabold text-gray-900 mb-10 text-center">
         👨‍💻 Admin Dashboard
       </h1>
 
-      {/* Users Section */}
-      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
-        <h2 className="text-2xl font-semibold mb-4">Users</h2>
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-3">Name</th>
-              <th className="p-3">Email</th>
-              <th className="p-3">Role</th>
-              <th className="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id || u.email} className="border-b">
-                <td className="p-3">{u.name}</td>
-                <td className="p-3">{u.email}</td>
-                <td className="p-3">{u.role}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => deleteUser(u.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+      <div className="grid md:grid-cols-2 gap-10">
+        {/* Users Section */}
+        <div className="bg-white shadow-xl rounded-2xl p-6 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">👥 Users</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-indigo-100 text-indigo-800 text-left">
+                  <th className="p-3">Name</th>
+                  <th className="p-3">Email</th>
+                  <th className="p-3">Role</th>
+                  <th className="p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr
+                    key={u.id || u.email}
+                    className="border-t hover:bg-gray-50 transition"
                   >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    <td className="p-3">{u.name}</td>
+                    <td className="p-3">{u.email}</td>
+                    <td className="p-3 capitalize">{u.role}</td>
+                    <td className="p-3">
+                      <button
+                        onClick={() => deleteUser(u.id)}
+                        className="px-4 py-1 rounded-lg text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      {/* Live Class Scheduling */}
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-semibold mb-4">📅 Live Class Scheduling</h2>
+        {/* Live Class Scheduling */}
+        <div className="bg-white shadow-xl rounded-2xl p-6 border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6">
+            📅 Live Class Scheduling
+          </h2>
 
-        {/* Add New Class */}
-        <form onSubmit={addClass} className="space-y-4 mb-6">
-          <input
-            type="text"
-            placeholder="Class Title"
-            value={newClass.title || ""}
-            onChange={(e) =>
-              setNewClass({ ...newClass, title: e.target.value })
-            }
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
-          <input
-            type="date"
-            value={newClass.date || ""}
-            onChange={(e) =>
-              setNewClass({ ...newClass, date: e.target.value })
-            }
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
-          <input
-            type="time"
-            value={newClass.time || ""}
-            onChange={(e) =>
-              setNewClass({ ...newClass, time: e.target.value })
-            }
-            className="w-full px-4 py-2 border rounded"
-            required
-          />
-          <input
-            type="text"
-            placeholder="Meeting Link"
-            value={newClass.link || ""}
-            onChange={(e) =>
-              setNewClass({ ...newClass, link: e.target.value })
-            }
-            className="w-full px-4 py-2 border rounded"
-          />
-
-          <button
-            type="submit"
-            className="w-full bg-indigo-500 text-white py-2 rounded hover:bg-indigo-600"
+          {/* Add Class Form */}
+          <form
+            onSubmit={addClass}
+            className="space-y-4 mb-6 bg-gray-50 p-4 rounded-xl"
           >
-            Add Class
-          </button>
-        </form>
+            <input
+              type="text"
+              placeholder="Class Title"
+              value={newClass.title}
+              onChange={(e) => setNewClass({ ...newClass, title: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+            <input
+              type="date"
+              value={newClass.date}
+              onChange={(e) => setNewClass({ ...newClass, date: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+            <input
+              type="time"
+              value={newClass.time}
+              onChange={(e) => setNewClass({ ...newClass, time: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Meeting Link"
+              value={newClass.link}
+              onChange={(e) => setNewClass({ ...newClass, link: e.target.value })}
+              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-400"
+            />
 
-        {/* Classes List */}
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="p-3">Title</th>
-              <th className="p-3">Date</th>
-              <th className="p-3">Time</th>
-              <th className="p-3">Link</th>
-              <th className="p-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {classes.map((c, index) => (
-              <tr key={c.id || index} className="border-b">
-                <td className="p-3">{c.title}</td>
-                <td className="p-3">{c.date}</td>
-                <td className="p-3">{c.time}</td>
-                <td className="p-3">{c.link}</td>
-                <td className="p-3">
-                  <button
-                    onClick={() => deleteClass(c.id)}
-                    className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-indigo-500 to-indigo-600 text-white py-2 rounded-lg shadow-lg hover:from-indigo-600 hover:to-indigo-700"
+            >
+              ➕ Add Class
+            </button>
+          </form>
+
+          {/* Classes Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
+              <thead>
+                <tr className="bg-indigo-100 text-indigo-800 text-left">
+                  <th className="p-3">Title</th>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Time</th>
+                  <th className="p-3">Link</th>
+                  <th className="p-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classes.map((c, index) => (
+                  <tr
+                    key={c.id || index}
+                    className="border-t hover:bg-gray-50 transition"
                   >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                    <td className="p-3">{c.title}</td>
+                    <td className="p-3">{c.date}</td>
+                    <td className="p-3">{c.time}</td>
+                    <td className="p-3 text-indigo-600 underline">
+                      <a href={c.link} target="_blank" rel="noreferrer">
+                        Join
+                      </a>
+                    </td>
+                    <td className="p-3">
+                      <button
+                        onClick={() => deleteClass(c.id)}
+                        className="px-4 py-1 rounded-lg text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-md"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
   );
