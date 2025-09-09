@@ -42,17 +42,15 @@ export default function AdminDashboard() {
   const [resources, setResources] = useState([]);
   const [groups, setGroups] = useState([]);
 
-  const [newGroup, setNewGroup] = useState({ name: "" });
+  const [newGroup, setNewGroup] = useState({ name: "", userIds: [] });
   const [newClass, setNewClass] = useState({
     link: "",
     title: "",
     date: "",
     time: "",
+    groupId: "",
   });
   const [newResource, setNewResource] = useState({ title: "", link: "" });
-
-  // ✅ Multi-user assignment
-  const [assignment, setAssignment] = useState({ userIds: [], classId: "" });
 
   // Pagination states
   const [userPage, setUserPage] = useState(1);
@@ -120,7 +118,7 @@ export default function AdminDashboard() {
     try {
       const res = await api.post("/api/admin/classes", newClass);
       setClasses([...classes, res.data]);
-      setNewClass({ link: "", title: "", date: "", time: "" });
+      setNewClass({ link: "", title: "", date: "", time: "", groupId: "" });
     } catch (err) {
       console.error(err);
     }
@@ -130,20 +128,6 @@ export default function AdminDashboard() {
     try {
       await api.delete(`/api/admin/classes/${id}`);
       setClasses(classes.filter((c) => c.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const assignUsersToClass = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post(`/api/admin/classes/${assignment.classId}/assign`, {
-        userIds: assignment.userIds,
-      });
-      alert("Users assigned to class ✅");
-      setAssignment({ userIds: [], classId: "" });
-      fetchClasses();
     } catch (err) {
       console.error(err);
     }
@@ -170,19 +154,18 @@ export default function AdminDashboard() {
   };
 
   const addGroup = async (e) => {
-  e.preventDefault();
-  try {
-    const res = await api.post("/api/admin/groups", newGroup);
-    if (newGroup.userIds?.length > 0) {
-      await api.put(`/api/admin/groups/${res.data.id}/users`, newGroup.userIds);
+    e.preventDefault();
+    try {
+      const res = await api.post("/api/admin/groups", { name: newGroup.name });
+      if (newGroup.userIds.length > 0) {
+        await api.put(`/api/admin/groups/${res.data.id}/users`, newGroup.userIds);
+      }
+      fetchGroups();
+      setNewGroup({ name: "", userIds: [] });
+    } catch (err) {
+      console.error(err);
     }
-    fetchGroups();
-    setNewGroup({ name: "", userIds: [] });
-  } catch (err) {
-    console.error(err);
-  }
-};
-
+  };
 
   const deleteGroup = async (id) => {
     try {
@@ -227,10 +210,8 @@ export default function AdminDashboard() {
               <tbody>
                 {paginate(users, userPage).map((u, idx) => (
                   <tr
-                    key={u.id || u.email}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white/10" : "bg-white/5"
-                    } hover:bg-white/20 transition`}
+                    key={u.id}
+                    className={`${idx % 2 === 0 ? "bg-white/10" : "bg-white/5"} hover:bg-white/20 transition`}
                   >
                     <td className="p-4">{u.name}</td>
                     <td className="p-4">{u.email}</td>
@@ -248,11 +229,7 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          <Pagination
-            currentPage={userPage}
-            totalPages={userPages}
-            onPageChange={setUserPage}
-          />
+          <Pagination currentPage={userPage} totalPages={userPages} onPageChange={setUserPage} />
         </div>
 
         {/* ===== CLASSES ===== */}
@@ -260,10 +237,7 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-bold text-white mb-6">📅 Live Classes</h2>
 
           {/* Add Class Form */}
-          <form
-            onSubmit={addClass}
-            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
-          >
+          <form onSubmit={addClass} className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl">
             <input
               type="text"
               placeholder="Class Title"
@@ -294,74 +268,24 @@ export default function AdminDashboard() {
               className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
             />
             <select
-    value={newClass.groupId || ""}
-    onChange={(e) => setNewClass({ ...newClass, groupId: e.target.value })}
-    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
-    required
-  >
-    <option value="">Select Group</option>
-    {groups.map((g) => (
-      <option key={g.id} value={g.id} className="text-black">
-        {g.name}
-      </option>
-    ))}
-  </select>
+              value={newClass.groupId || ""}
+              onChange={(e) => setNewClass({ ...newClass, groupId: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+              required
+            >
+              <option value="">Select Group</option>
+              {groups.map((g) => (
+                <option key={g.id} value={g.id} className="text-black">
+                  {g.name}
+                </option>
+              ))}
+            </select>
+
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-green-400 via-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold hover:opacity-90"
             >
               ➕ Add Class
-            </button>
-          </form>
-
-          {/* Assign Users Form */}
-          <form
-            onSubmit={assignUsersToClass}
-            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
-          >
-            <select
-              value={assignment.classId}
-              onChange={(e) =>
-                setAssignment({ ...assignment, classId: e.target.value })
-              }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
-              required
-            >
-              <option value="">Select Class</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id} className="text-black">
-                  {c.title}
-                </option>
-              ))}
-            </select>
-
-            <select
-              multiple
-              value={assignment.userIds}
-              onChange={(e) =>
-                setAssignment({
-                  ...assignment,
-                  userIds: Array.from(
-                    e.target.selectedOptions,
-                    (opt) => opt.value
-                  ),
-                })
-              }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white h-40"
-              required
-            >
-              {users.map((u) => (
-                <option key={u.id} value={u.id} className="text-black">
-                  {u.name} ({u.email})
-                </option>
-              ))}
-            </select>
-
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white py-3 rounded-xl font-bold hover:opacity-90"
-            >
-              📌 Assign Users to Class
             </button>
           </form>
 
@@ -383,27 +307,15 @@ export default function AdminDashboard() {
                 {paginate(classes, classPage).map((c, idx) => (
                   <tr
                     key={c.id}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white/10" : "bg-white/5"
-                    } hover:bg-white/20 transition`}
+                    className={`${idx % 2 === 0 ? "bg-white/10" : "bg-white/5"} hover:bg-white/20 transition`}
                   >
                     <td className="p-4">{c.title}</td>
                     <td className="p-4">{c.date}</td>
                     <td className="p-4">{c.time}</td>
                     <td className="p-4">{c.group ? c.group.name : "No group"}</td>
-<td className="p-4">
-  {c.users && c.users.length > 0
-    ? c.users.map((u) => u.name).join(", ")
-    : "No users"}
-</td>
-
+                    <td className="p-4">{c.users?.map((u) => u.name).join(", ") || "No users"}</td>
                     <td className="p-4">
-                      <a
-                        href={c.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-yellow-300 underline"
-                      >
+                      <a href={c.link} target="_blank" rel="noreferrer" className="text-yellow-300 underline">
                         Join
                       </a>
                     </td>
@@ -420,27 +332,18 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          <Pagination
-            currentPage={classPage}
-            totalPages={classPages}
-            onPageChange={setClassPage}
-          />
+          <Pagination currentPage={classPage} totalPages={classPages} onPageChange={setClassPage} />
         </div>
 
         {/* ===== RESOURCES ===== */}
         <div className="bg-white/20 backdrop-blur-lg rounded-3xl p-8 border border-white/30 shadow-2xl md:col-span-2">
           <h2 className="text-3xl font-bold text-white mb-6">📚 Resources</h2>
-          <form
-            onSubmit={addResource}
-            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
-          >
+          <form onSubmit={addResource} className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl">
             <input
               type="text"
               placeholder="Resource Title"
               value={newResource.title}
-              onChange={(e) =>
-                setNewResource({ ...newResource, title: e.target.value })
-              }
+              onChange={(e) => setNewResource({ ...newResource, title: e.target.value })}
               className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
               required
             />
@@ -448,9 +351,7 @@ export default function AdminDashboard() {
               type="text"
               placeholder="Resource Link"
               value={newResource.link}
-              onChange={(e) =>
-                setNewResource({ ...newResource, link: e.target.value })
-              }
+              onChange={(e) => setNewResource({ ...newResource, link: e.target.value })}
               className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
               required
             />
@@ -475,18 +376,11 @@ export default function AdminDashboard() {
                 {paginate(resources, resourcePage).map((r, idx) => (
                   <tr
                     key={r.id}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white/10" : "bg-white/5"
-                    } hover:bg-white/20 transition`}
+                    className={`${idx % 2 === 0 ? "bg-white/10" : "bg-white/5"} hover:bg-white/20 transition`}
                   >
                     <td className="p-4">{r.title}</td>
                     <td className="p-4">
-                      <a
-                        href={r.link}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-green-300 underline"
-                      >
+                      <a href={r.link} target="_blank" rel="noreferrer" className="text-green-300 underline">
                         Open
                       </a>
                     </td>
@@ -503,11 +397,7 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          <Pagination
-            currentPage={resourcePage}
-            totalPages={resourcePages}
-            onPageChange={setResourcePage}
-          />
+          <Pagination currentPage={resourcePage} totalPages={resourcePages} onPageChange={setResourcePage} />
         </div>
 
         {/* ===== GROUPS ===== */}
@@ -515,47 +405,47 @@ export default function AdminDashboard() {
           <h2 className="text-3xl font-bold text-white mb-6">👨‍👩‍👦 Groups</h2>
 
           <form onSubmit={addGroup} className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl">
-  <input
-    type="text"
-    placeholder="Group Name"
-    value={newGroup.name}
-    onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
-    required
-  />
+            <input
+              type="text"
+              placeholder="Group Name"
+              value={newGroup.name}
+              onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
+              required
+            />
 
-  <select
-    multiple
-    value={newGroup.userIds || []}
-    onChange={(e) =>
-      setNewGroup({
-        ...newGroup,
-        userIds: Array.from(e.target.selectedOptions, (opt) => opt.value),
-      })
-    }
-    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white h-40"
-  >
-    {users.map((u) => (
-      <option key={u.id} value={u.id} className="text-black">
-        {u.name} ({u.email})
-      </option>
-    ))}
-  </select>
+            <select
+              multiple
+              value={newGroup.userIds}
+              onChange={(e) =>
+                setNewGroup({
+                  ...newGroup,
+                  userIds: Array.from(e.target.selectedOptions, (opt) => opt.value),
+                })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+            >
+              {users.map((u) => (
+                <option key={u.id} value={u.id} className="text-black">
+                  {u.name}
+                </option>
+              ))}
+            </select>
 
-  <button
-    type="submit"
-    className="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white py-3 rounded-xl font-bold hover:opacity-90"
-  >
-    ➕ Add Group
-  </button>
-</form>
-
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-green-400 via-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold hover:opacity-90"
+            >
+              ➕ Add Group
+            </button>
+          </form>
 
           <div className="overflow-x-auto rounded-lg">
             <table className="w-full text-white border border-white/20 rounded-lg">
               <thead>
                 <tr className="bg-gradient-to-r from-blue-600 to-indigo-600 text-lg">
                   <th className="p-4">Group Name</th>
+                  <th className="p-4">Users</th>
                   <th className="p-4">Actions</th>
                 </tr>
               </thead>
@@ -563,11 +453,10 @@ export default function AdminDashboard() {
                 {paginate(groups, groupPage).map((g, idx) => (
                   <tr
                     key={g.id}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white/10" : "bg-white/5"
-                    } hover:bg-white/20 transition`}
+                    className={`${idx % 2 === 0 ? "bg-white/10" : "bg-white/5"} hover:bg-white/20 transition`}
                   >
                     <td className="p-4">{g.name}</td>
+                    <td className="p-4">{g.users?.map((u) => u.name).join(", ") || "No users"}</td>
                     <td className="p-4">
                       <button
                         onClick={() => deleteGroup(g.id)}
@@ -581,11 +470,7 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
-          <Pagination
-            currentPage={groupPage}
-            totalPages={groupPages}
-            onPageChange={setGroupPage}
-          />
+          <Pagination currentPage={groupPage} totalPages={groupPages} onPageChange={setGroupPage} />
         </div>
       </div>
     </div>
