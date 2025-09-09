@@ -289,6 +289,19 @@ export default function AdminDashboard() {
               onChange={(e) => setNewClass({ ...newClass, link: e.target.value })}
               className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
             />
+            <select
+    value={newClass.groupId || ""}
+    onChange={(e) => setNewClass({ ...newClass, groupId: e.target.value })}
+    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+    required
+  >
+    <option value="">Select Group</option>
+    {groups.map((g) => (
+      <option key={g.id} value={g.id} className="text-black">
+        {g.name}
+      </option>
+    ))}
+  </select>
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-green-400 via-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold hover:opacity-90"
@@ -372,11 +385,13 @@ export default function AdminDashboard() {
                     <td className="p-4">{c.title}</td>
                     <td className="p-4">{c.date}</td>
                     <td className="p-4">{c.time}</td>
-                    <td className="p-4">
-                      {c.users && c.users.length > 0
-                        ? c.users.map((u) => u.name).join(", ")
-                        : "No users"}
-                    </td>
+                    <td className="p-4">{c.group ? c.group.name : "No group"}</td>
+<td className="p-4">
+  {c.users && c.users.length > 0
+    ? c.users.map((u) => u.name).join(", ")
+    : "No users"}
+</td>
+
                     <td className="p-4">
                       <a
                         href={c.link}
