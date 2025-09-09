@@ -369,6 +369,7 @@ export default function AdminDashboard() {
                   <th className="p-4">Title</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Time</th>
+                  <th className="p-4">Group</th>
                   <th className="p-4">Users</th>
                   <th className="p-4">Link</th>
                   <th className="p-4">Actions</th>
