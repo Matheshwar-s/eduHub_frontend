@@ -170,15 +170,19 @@ export default function AdminDashboard() {
   };
 
   const addGroup = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await api.post("/api/admin/groups", newGroup);
-      setGroups([...groups, res.data]);
-      setNewGroup({ name: "" });
-    } catch (err) {
-      console.error(err);
+  e.preventDefault();
+  try {
+    const res = await api.post("/api/admin/groups", newGroup);
+    if (newGroup.userIds?.length > 0) {
+      await api.put(`/api/admin/groups/${res.data.id}/users`, newGroup.userIds);
     }
-  };
+    fetchGroups();
+    setNewGroup({ name: "", userIds: [] });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 
   const deleteGroup = async (id) => {
     try {
@@ -510,27 +514,42 @@ export default function AdminDashboard() {
         <div className="bg-white/20 backdrop-blur-lg rounded-3xl p-8 border border-white/30 shadow-2xl md:col-span-2">
           <h2 className="text-3xl font-bold text-white mb-6">👨‍👩‍👦 Groups</h2>
 
-          <form
-            onSubmit={addGroup}
-            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
-          >
-            <input
-              type="text"
-              placeholder="Group Name"
-              value={newGroup.name}
-              onChange={(e) =>
-                setNewGroup({ ...newGroup, name: e.target.value })
-              }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
-              required
-            />
-            <button
-              type="submit"
-              className="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white py-3 rounded-xl font-bold hover:opacity-90"
-            >
-              ➕ Add Group
-            </button>
-          </form>
+          <form onSubmit={addGroup} className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl">
+  <input
+    type="text"
+    placeholder="Group Name"
+    value={newGroup.name}
+    onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
+    required
+  />
+
+  <select
+    multiple
+    value={newGroup.userIds || []}
+    onChange={(e) =>
+      setNewGroup({
+        ...newGroup,
+        userIds: Array.from(e.target.selectedOptions, (opt) => opt.value),
+      })
+    }
+    className="w-full px-4 py-3 rounded-xl bg-white/20 text-white h-40"
+  >
+    {users.map((u) => (
+      <option key={u.id} value={u.id} className="text-black">
+        {u.name} ({u.email})
+      </option>
+    ))}
+  </select>
+
+  <button
+    type="submit"
+    className="w-full bg-gradient-to-r from-purple-400 to-pink-500 text-white py-3 rounded-xl font-bold hover:opacity-90"
+  >
+    ➕ Add Group
+  </button>
+</form>
+
 
           <div className="overflow-x-auto rounded-lg">
             <table className="w-full text-white border border-white/20 rounded-lg">
