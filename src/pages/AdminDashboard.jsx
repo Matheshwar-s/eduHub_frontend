@@ -4,16 +4,20 @@ import api from "../api";
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [resources, setResources] = useState([]);
   const [newClass, setNewClass] = useState({
     link: "",
     title: "",
     date: "",
     time: "",
   });
+  const [meetingLink, setMeetingLink] = useState({ userId: "", link: "" });
+  const [newResource, setNewResource] = useState({ title: "", link: "" });
 
   useEffect(() => {
     fetchUsers();
     fetchClasses();
+    fetchResources();
   }, []);
 
   const fetchUsers = async () => {
@@ -63,6 +67,50 @@ export default function AdminDashboard() {
     }
   };
 
+  // Meeting link for users
+  const addMeetingLink = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post(`/api/admin/users/${meetingLink.userId}/meeting`, {
+        link: meetingLink.link,
+      });
+      setMeetingLink({ userId: "", link: "" });
+      alert("Meeting link assigned successfully ✅");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Resources
+  const fetchResources = async () => {
+    try {
+      const res = await api.get("/api/admin/resources");
+      setResources(res.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const addResource = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.post("/api/admin/resources", newResource);
+      setResources([...resources, res.data]);
+      setNewResource({ title: "", link: "" });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const deleteResource = async (id) => {
+    try {
+      await api.delete(`/api/admin/resources/${id}`);
+      setResources(resources.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 p-10">
       <h1 className="text-5xl font-extrabold text-white mb-12 text-center drop-shadow-lg">
@@ -107,6 +155,47 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+
+          {/* Assign Meeting Link */}
+          <form
+            onSubmit={addMeetingLink}
+            className="mt-8 bg-white/10 p-5 rounded-2xl space-y-4"
+          >
+            <h3 className="text-xl font-semibold text-white">
+              🔗 Assign Meeting Link
+            </h3>
+            <select
+              value={meetingLink.userId}
+              onChange={(e) =>
+                setMeetingLink({ ...meetingLink, userId: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+              required
+            >
+              <option value="">Select User</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
+              ))}
+            </select>
+            <input
+              type="text"
+              placeholder="Meeting Link"
+              value={meetingLink.link}
+              onChange={(e) =>
+                setMeetingLink({ ...meetingLink, link: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
+              required
+            />
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold shadow-xl hover:opacity-90 transition"
+            >
+              ✅ Assign Link
+            </button>
+          </form>
         </div>
 
         {/* Live Class Scheduling */}
@@ -127,7 +216,7 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewClass({ ...newClass, title: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-pink-400"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
               required
             />
             <input
@@ -136,7 +225,7 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewClass({ ...newClass, date: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-pink-400"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
               required
             />
             <input
@@ -145,7 +234,7 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewClass({ ...newClass, time: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-pink-400"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
               required
             />
             <input
@@ -155,7 +244,7 @@ export default function AdminDashboard() {
               onChange={(e) =>
                 setNewClass({ ...newClass, link: e.target.value })
               }
-              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70 focus:ring-2 focus:ring-pink-400"
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
             />
 
             <button
@@ -202,6 +291,86 @@ export default function AdminDashboard() {
                     <td className="p-4">
                       <button
                         onClick={() => deleteClass(c.id)}
+                        className="px-5 py-2 rounded-xl text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 shadow-lg"
+                      >
+                        ❌ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Resources Section */}
+        <div className="bg-white/20 backdrop-blur-lg shadow-2xl rounded-3xl p-8 border border-white/30 md:col-span-2">
+          <h2 className="text-3xl font-bold text-white mb-6">📚 Resources</h2>
+
+          <form
+            onSubmit={addResource}
+            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
+          >
+            <input
+              type="text"
+              placeholder="Resource Title"
+              value={newResource.title}
+              onChange={(e) =>
+                setNewResource({ ...newResource, title: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
+              required
+            />
+            <input
+              type="text"
+              placeholder="Resource Link"
+              value={newResource.link}
+              onChange={(e) =>
+                setNewResource({ ...newResource, link: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white placeholder-white/70"
+              required
+            />
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-pink-400 to-red-500 text-white py-3 rounded-xl font-bold shadow-xl hover:opacity-90 transition"
+            >
+              ➕ Add Resource
+            </button>
+          </form>
+
+          {/* Resource Table */}
+          <div className="overflow-x-auto rounded-lg">
+            <table className="w-full text-white border-collapse">
+              <thead>
+                <tr className="bg-white/20 text-lg">
+                  <th className="p-4">Title</th>
+                  <th className="p-4">Link</th>
+                  <th className="p-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {resources.map((r, idx) => (
+                  <tr
+                    key={r.id || idx}
+                    className={`${
+                      idx % 2 === 0 ? "bg-white/10" : "bg-white/5"
+                    } hover:bg-white/20 transition`}
+                  >
+                    <td className="p-4">{r.title}</td>
+                    <td className="p-4">
+                      <a
+                        href={r.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-green-300 underline"
+                      >
+                        Open
+                      </a>
+                    </td>
+                    <td className="p-4">
+                      <button
+                        onClick={() => deleteResource(r.id)}
                         className="px-5 py-2 rounded-xl text-white bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 shadow-lg"
                       >
                         ❌ Delete
