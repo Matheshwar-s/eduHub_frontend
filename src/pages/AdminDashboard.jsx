@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   });
   const [meetingLink, setMeetingLink] = useState({ userId: "", link: "" });
   const [newResource, setNewResource] = useState({ title: "", link: "" });
+  const [assignment, setAssignment] = useState({ userId: "", classId: "" });
 
   useEffect(() => {
     fetchUsers();
@@ -76,6 +77,21 @@ export default function AdminDashboard() {
       });
       setMeetingLink({ userId: "", link: "" });
       alert("Meeting link assigned successfully ✅");
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Assign user to class
+  const assignUserToClass = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post(
+        `/api/admin/classes/${assignment.classId}/assign/${assignment.userId}`
+      );
+      alert("User assigned to class ✅");
+      setAssignment({ userId: "", classId: "" });
+      fetchClasses(); // refresh list
     } catch (err) {
       console.error(err);
     }
@@ -255,6 +271,52 @@ export default function AdminDashboard() {
             </button>
           </form>
 
+          {/* Assign User to Class */}
+          <form
+            onSubmit={assignUserToClass}
+            className="space-y-4 mb-8 bg-white/10 p-5 rounded-2xl"
+          >
+            <h3 className="text-xl font-semibold text-white">
+              📌 Assign User to Class
+            </h3>
+            <select
+              value={assignment.userId}
+              onChange={(e) =>
+                setAssignment({ ...assignment, userId: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+              required
+            >
+              <option value="">Select User</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
+              ))}
+            </select>
+            <select
+              value={assignment.classId}
+              onChange={(e) =>
+                setAssignment({ ...assignment, classId: e.target.value })
+              }
+              className="w-full px-4 py-3 rounded-xl bg-white/20 text-white"
+              required
+            >
+              <option value="">Select Class</option>
+              {classes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.title} ({c.date})
+                </option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 rounded-xl font-bold shadow-xl hover:opacity-90 transition"
+            >
+              ✅ Assign User
+            </button>
+          </form>
+
           {/* Classes Table */}
           <div className="overflow-x-auto rounded-lg">
             <table className="w-full text-white border-collapse">
@@ -263,6 +325,7 @@ export default function AdminDashboard() {
                   <th className="p-4">Title</th>
                   <th className="p-4">Date</th>
                   <th className="p-4">Time</th>
+                  <th className="p-4">Users</th>
                   <th className="p-4">Link</th>
                   <th className="p-4">Actions</th>
                 </tr>
@@ -278,6 +341,11 @@ export default function AdminDashboard() {
                     <td className="p-4">{c.title}</td>
                     <td className="p-4">{c.date}</td>
                     <td className="p-4">{c.time}</td>
+                    <td className="p-4">
+                      {c.users && c.users.length > 0
+                        ? c.users.map((u) => u.name).join(", ")
+                        : "No users"}
+                    </td>
                     <td className="p-4">
                       <a
                         href={c.link}
